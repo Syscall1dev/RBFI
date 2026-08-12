@@ -1,4 +1,4 @@
-# HYFI
+# RBFI
 RBFI is a 64-bit firmware that can roll back from 64-bit to 32 and 16 bits, and also has a command shell
 # Info:
 ![Assembly(Nasm)](https://img.shields.io/badge/Ready-90%25-orange)
@@ -28,10 +28,14 @@ panic: action=fatal
 ```
 **SIZE :**
 ``truncate -s 64K hyfi.bin``
+
 *launch:*
 ``bochs -f bochsrc.txt -q``
 
 **Qemu:**
+
+**SIZE :**
+``truncate -s 64K hyfi.bin``
 
 *launch:*
 ``qemu-system-x86_64 -bios hyfi.bin -monitor stdio``
