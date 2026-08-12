@@ -1,18 +1,18 @@
 # HYFI
-                                            
-HYFI is a 64-bit firmware that can roll back from 64-bit to 32 and 16 bits, and also has a command shell
+RBFI is a 64-bit firmware that can roll back from 64-bit to 32 and 16 bits, and also has a command shell
 # Info:
-![Assembly(Nasm)](https://img.shields.io/badge/Ready-97%25-orange)
+![Assembly(Nasm)](https://img.shields.io/badge/Ready-90%25-orange)
 ![Assembly(Nasm)](https://img.shields.io/badge/In-developered-blue)
 ![Assembly(Nasm)](https://img.shields.io/badge/Platform-x86--64-blue)
-![Assembly(Nasm)](https://img.shields.io/badge/Matherboard-ASUS--P8H77--M--PRO-blue)
+![Assembly(Nasm)](https://img.shields.io/badge/Socket-LGA--1155-blue)
 # More info:
-HYFI supports Intel processors from 2nd to 6th generation, and also has IRQ, IDT, PIC. Well, let's get back to the firmware itself—it boots the processor in the mode the user wants.
-Let's say the user needs to launch a 16-bit PRoS core. For HYFI to hand control over to the core, we need to tell it by writing a command in the "real mode" shell. 
-HYFI already knows that you want to run the core in 16-bit mode, but we haven’t handed control to the core yet. 
-To transfer control to our core, we write the "launch" command, and HYFI will load our core at address 0x00100000 (1 megabyte of memory).
+RBFI - 64-bit firmware with the ability to revert to 32 and 16 bits for backward compatibility, running old programs, and DOS
+For the OS to run, the RBFI program has to be at address 0x0100000, and the program needs to get into memory via USB 2
+To specify the bitness of your program, the rbfi_bud label in the RBFI code should be under a certain number: 64-bit mode - rbfi_bud db 3, 32-bit mode - rbfi_bud db 2, 16-bit mode - rbfi_bud db 1
 # Build code:
-`nasm -f bin hyfi.asm -o hyfi.bin`
+When compiling RBFI, be sure to specify the value of rbfi_bud
+**For example : **
+`nasm -f bin hyfi.asm -Drbfi_bud=3 -o hyfi.bin`
 # Launch:
 **Bochs:**
 
@@ -26,6 +26,8 @@ vgaromimage: file=/usr/share/bochs/VGABIOS-lgpl-latest
 com1: enabled=1, mode=file, dev=com1.txt
 panic: action=fatal
 ```
+**SIZE :**
+``truncate -s 64K hyfi.bin``
 *launch:*
 ``bochs -f bochsrc.txt -q``
 
