@@ -3,8 +3,9 @@ RBFI is a 64-bit firmware that can roll back from 64-bit to 32 and 16 bits
 # Info:
 ![Assembly(Nasm)](https://img.shields.io/badge/Ready-90%25-orange)
 ![Assembly(Nasm)](https://img.shields.io/badge/In-developered-blue)
-![Assembly(Nasm)](https://img.shields.io/badge/Platform-x86--64-blue)
+![Assembly(Nasm)](https://img.shields.io/badge/Platform-x86--64-black)
 ![Assembly(Nasm)](https://img.shields.io/badge/Socket-LGA--1155-blue)
+![Assembly(Nasm)](https://img.shields.io/badge/GPU-intel-hd-3000-red)
 # More info:
 RBFI - 64-bit firmware with the ability to revert to 32 and 16 bits for backward compatibility, running old programs, and DOS
 For the OS to run, the RBFI program has to be at address 0x0100000, and the program needs to get into memory via USB 2
