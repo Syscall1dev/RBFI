@@ -20,22 +20,14 @@ bochsct.txt:
 ``` Bash
 cpu: model=corei7_haswell_4770, count=1, ips=50000000, reset_on_triple_fault=1
 megs:128
-romimage: file=hyfi.bin, address=0xffff0000
-vga: extension=vbe, update_freq=60
-vgaromimage: file=/usr/share/bochs/VGABIOS-lgpl-latest
-com1: enabled=1, mode=file, dev=com1.txt
+romimage: file=hyfi.bin, address=0xfffe0000
 panic: action=fatal
 ```
-**SIZE :**
-``truncate -s 64K hyfi.bin``
 
 *launch:*
 ``bochs -f bochsrc.txt -q``
 
 **Qemu:**
-
-**SIZE :**
-``truncate -s 64K hyfi.bin``
 
 *launch:*
 ``qemu-system-x86_64 -bios hyfi.bin -monitor stdio``
