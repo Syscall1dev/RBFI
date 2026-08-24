@@ -1,5 +1,5 @@
-# RBFI
-RBFI is a 64-bit firmware that can roll back from 64-bit to 32 and 16 bits
+# RBFI - (Raw Boot Firmware Interface)
+RBFI is an ultra-fast, small, 64-bit firmware designed for backward compatibility in terms of rolling back from 64-bit mode to 32-bit and 16-bit to run old programs and DOS.
 # Info:
 ![Assembly(Nasm)](https://img.shields.io/badge/Ready-90%25-orange)
 ![Assembly(Nasm)](https://img.shields.io/badge/In-developered-blue)
