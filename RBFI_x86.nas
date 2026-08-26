@@ -2,7 +2,7 @@
 ;+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 ;RawBootFirmwareInterface RBFI v0.1.17
 ;Copiright (c) 2026 $yscall-(Syscall1dev)
-;More info : By default, HYFI looks for the kernel at address 0x00100000,
+;More info : By default, RBFI looks for the kernel at address 0x00100000,
 ;exactly one megabyte of memory in 64-bit mode.
 ;You can use the 'real mode' command and RBFI will switch to 16-bit mode, or 'protected mode' for 32-bit mode.
 ;To hand over control to the kernel, you need to use the 'launch' command, BUT MAKE SURE YOU CHOOSE THE MODE FIRST!!!
@@ -28,39 +28,65 @@ startcli:
     dw gdt_end - gdt - 1
     dd 0x000E000C
     lol:
-;======CAR======
-    mov ecx,0x2FF
-    rdmsr
-    and eax,0xFFFFF3FF
-    mov ecx,0x200
-    mov eax,0xFEF00006
-    mov edx,0x00000000
-    wrmsr
-    mov ecx,0x201
-    mov eax,0xFFFF0800
-    wrmsr
-    mov ecx,0x2FF
-    rdmsr
-    or eax,0xC00
-    wrmsr
-    mov edi,0xFEF00000
-    mov ecx,16384
-    xor eax,eax
-    rep stosd
-    mov esp,0xFEF0FFFC
-    mov ebp,esp 
 ;======PROTECTED_MODE???=======
     lgdt [cs:gdt_pointer] 
      mov eax,cr0
      or eax,1
      mov cr0,eax
-     jmp dword 0x08:0x00000000000E009D
+     jmp dword 0x08:0x00000000000e0042
 ;=============================
 ;=============================
 ;=============================
 [bits 32]
 start32: 
-;======PCI======
+;======CONF======
+   mov ax,0x10
+   mov esp,0xFEF0FFFC
+   mov ds,ax
+   mov ss,ax
+   mov es,ax 
+;======CPU_ID======
+        mov eax,1
+        cpuid
+        mov edx,eax
+        shr edx,4 
+        and edx,0x0000000F
+        mov ebx,eax
+        shr ebx,16
+        and ebx,0x0000000F
+        shl ebx,4
+        add ebx,edx
+cmp ebx,0x2A
+je sandy_bri
+cmp ebx,0x3A
+je ivy_bri
+cmp ebx,0x3C
+je haswell
+
+sandy_bri:
+;======CAR======
+  mov ecx,0x2FF
+  rdmsr
+  and eax,0xFFFFF3FF
+  mov ecx,0x200
+  mov eax,0xFEF00006
+  mov edx,0x00000000
+  wrmsr
+  mov ecx,0x201
+  mov eax,0xFFE00800
+  mov edx,0x0000000F
+  wrmsr
+  mov ecx,0x2FF
+  rdmsr
+  or eax,0xC00
+  wrmsr
+  mov edi,0xFEF00000
+  mov ecx,0x000C0000
+  xor eax,eax
+  rep stosd
+  mov esp,0xFEF0FFFC
+  mov ebp,esp  
+;======PCI====== 
    mov eax,0x8000083E
    out 0x0CF8,eax
    in eax,0xCFC
@@ -79,74 +105,109 @@ start32:
    in eax,0x0CFC
    or eax,0x07
    out 0x0CFC,eax
-;======CONF======
-   mov ax,0x10
-   mov esp,0x8000FFFF
-   mov ds,ax
-   mov ss,ax
-   mov es,ax
-;======APIC======
-mov dx,0x21
-mov al,0xFF
+jmp loff
+;======================
+;======================
+;======================
+ivy_bri:
+ ;======CAR======
+  mov ecx,0x2FF
+ rdmsr
+ and eax,0xFFFFF3FF
+mov ecx,0x200
+mov eax,0xFEF00006
+mov edx,0x00000000
+wrmsr
+ mov ecx,0x201
+ mov eax,0xFFE00800
+ mov edx,0x0000000F
+wrmsr
+ mov ecx,0x2FF
+ rdmsr
+ or eax,0xC00
+ wrmsr
+ mov edi,0xFEF00000
+ mov ecx,0x000C0000
+ xor eax,eax
+ rep stosd
+ mov esp,0xFEF0FFFC
+ mov ebp,esp   
+;======PCI======
+    mov dx,0x0CF8
+    mov eax,0x8000083C
+    out dx,eax
+    mov dx,0x0CFC
+    in eax,dx
+    or eax,0x000000008
+    out dx,eax
+
+    mov eax,0x8000F880
+    mov dx,0x0CF8
+    out dx,eax
+    mov eax,0x00700010
+    mov dx,0x0CFC
+    out dx,eax
+
+    mov eax,0x8000F804
+    mov dx,0x0CF8
+    out dx,eax
+    mov dx,0x0CFC
+    in eax,dx
+    or eax,0x00000007
+    mov dx,0x0CFC
+    out dx,eax
+
+    mov al,0x80
+    mov dx,0x70
+    out dx,al
+jmp loff
+;======================
+;======================
+;======================
+haswell:
+;======PCIe======
+mov eax,[0xE000803C]
+or eax,0x00000008
+mov [0xE000803C],eax
+;======LPC======
+mov eax,0x00700010
+mov [0xE00F8080],eax
+;======PMBASE======
+mov eax,0x00000501
+mov [0xE00F80AC],eax
+;======PCI_command======
+mov eax,[0xE00F8004]
+or eax,0x00000007
+mov [0xE00F8004],eax
+
+mov al,0x80
+mov dx,0x70
 out dx,al
-mov dx,0xA1
-mov al,0xFF
-
-mov ecx,0x1B
+;======CAR======
+mov ecx,0x000002FF
 rdmsr
-or eax,1<<11
+and eax,0xFFFFF3FF
+wrmsr 
+mov ecx,0x00000200
+mov eax,0xFEF00006
+xor edx,edx
 wrmsr
-;======MMIO======
-mov eax,0xFEE00230
-mov ebx,0x00000000
-mov [eax],ebx
-mov eax,0xFEE000F0
-mov ebx,0x1FF
-mov [eax],ebx
-
-mov eax,0xFEC00000
-mov ebx,0x13
-mov [eax],ebx
-mov eax,0xFEC00010
-mov ebx,0x00000000
-mov [eax],ebx
-
-mov eax,0xFEC00000
-mov ebx,0x12
-mov [eax],ebx
-
-mov eax,0xFEC00010
-mov ebx,0x00000021
-mov [eax],ebx
-
-mov ecx,0x1B
+mov ecx,0x00000201
+mov eax,0xFFFF0800
+mov edx,0x0000000F
+wrmsr 
+mov ecx,0x000002FF
 rdmsr
-or eax,1<<11
-wrmsr
-
-mov eax,0xFEE00230
-mov ebx,0x00000000
-mov [eax],ebx
-mov eax,0xFEE000F0
-mov ebx,0x1FF
-mov [eax],ebx
-
-mov eax,0xFEC00000
-mov ebx,0x13
-mov [eax],ebx
-mov eax,0xFEC00010
-mov ebx,0x00000000
-mov [eax],ebx
-
-mov eax,0xFEC00000
-mov ebx,0x12
-mov [eax],ebx
-
-mov eax,0xFEC00010
-mov ebx,0x00000021
-mov [eax],ebx
+or eax,0x00000C00
+wrmsr 
+mov edi,0xFEF00000
+mov ecx,16386
+xor eax,eax
+rep stosd
+mov esp,0xFEF0FFFC
+mov ebp,esp
 ;======LONG_MODE======
-
+loff:
    mov eax,cr4
    or eax,0x30
    mov cr4,eax
@@ -159,6 +220,8 @@ mov [eax],ebx
    mov dword [0x00011000],0x00012003
    mov dword [0x00011004],0x00000000
    mov dword [0x00012000],0x0000019B
+   mov dword [0x00012FB0],0xFEC0019B
+   mov dword [0x00012FB8],0xFEE0019B
    mov dword [0x00012004],0x00000000
    mov eax,0x00010000
    mov cr3,eax
@@ -170,8 +233,7 @@ mov [eax],ebx
    mov eax,cr0
    or eax,0x80000000
    mov cr0,eax
-   jmp dword 0x08:0x00000000000E0215
-
+   jmp dword 0x08:0x00000000000e02be
 ;=============================
 ;=============================
 ;=============================
@@ -184,7 +246,7 @@ long_mode:
     mov ss, ax
     mov fs, ax
     mov gs, ax
-    jmp HYFI_MAIN
+    jmp RBFI_MAIN
 ;======CONF======
 align 8
 
@@ -215,12 +277,46 @@ dd gdt32
 gdt32_end:
 
 stack_top:
+RBFI_MAIN:
+;======MMIO_FF======
+cmp ebx,0x2A
+je sandy_mmio
+cmp ebx,0x3A
+je ivy_mmio
+cmp ebx,0x3C
+je haswell_mmio
+jmp SETT
+;======MMIO_CONF======
+sandy_mmio:
+mov eax,0x80000060
+mov dx,0x0CF8
+out dx,eax
+mov eax,0xE0000001
+mov dx,0x0CFC
+out dx,eax
+jmp SETT
+ivy_mmio:
+mov eax,0x80000060
+mov dx,0x0CF8
+out dx,eax
+mov eax,0xE0000001
+mov dx,0x0CFC
+out dx,eax
+haswell_mmio:
+    mov eax,0x80000060
+    mov dx,0x0CF8
+    out dx,eax
+
+    mov eax,0xE0000001
+    mov dx,0x0CFC
+    out dx,eax
+SETT:
 ;+=+=+=+=+=+=+=+=+=+=+=+=+=+=++=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 ;=+=+=+=+=+=+=+=+=+=+=+=+=+=+==+=+=+=+=+=+=+=+=+=+=+=+=+=+=
 section .text
-HYFI_MAIN:
 [bits 64]
 ;======IDT======
+jmp lol2
 align 16
 idt_table:
 times 256 dq 0, 0
@@ -231,16 +327,17 @@ align 16
 idt_ptr:
 dw idt_end - idt_table - 1
 dq (0xFFFE0000+(idt_table-startcli))
-lol2:
+
 xor rcx, rcx
-mov rdi,0x000F2210
+mov rdi,0x000E2210
+add rdi,(idt_table-startcli)
 .fill_idt:
     lea rax,[rel fault]
     mov rbx, rdi
     mov r8, rcx
     shl r8, 4
     add rbx, r8
-    mov [rbx], ax
+    mov [rbx],ax
     
     mov word [rbx+2], 0x08
     mov byte [rbx+5], 0x8E
@@ -256,6 +353,7 @@ mov [rbx+4],byte 0
     cmp rcx, 256
     jne .fill_idt
     lidt [rel idt_ptr]
+    lol2:
 ;======CULLERS======
     mov dx,0x002E
     mov al,0x87
@@ -269,90 +367,63 @@ mov [rbx+4],byte 0
     mov dx,0x002F
     mov al,0x0B
     out dx,al
-;======DISPLAY======
-    mov dx,0x0CF8
-    mov eax,0x80001010
-    out dx,eax
-
-    mov dx,0x0CFC
-    in eax,dx
-    and eax,0xFFFFFFF0
-    mov ebx,eax
-
-    mov dx,0x0CF8
-    mov eax,0x80001014
-    out dx,eax
-
-    mov dx,0x0CFC
-    in eax,dx
-
-    shl rax,32
-    or rax,rbx 
+;======COM======
+jmp HDMI
+engine:
+push rax
+push rsi
+mov rsi,0xE0018014
+.loopw:
+    mov al,[rsi]
+    test al,0x20
+    jz .loopw
+    mov rsi,0xE0018000
+    pop rax
+    mov [rsi],al
+    pop rsi
+    ret
 ;======HDMI======
+HDMI:
+xor rax,rax
 mov [rax+0x06014],dword 0x80000000
 mov [rax+0x6000C],dword 0x800C0000
 mov [rax+0x7200C],dword 0x80000000
 mov [rax+0x72008],dword 0x80000000
 mov [rax+0xE1140],dword 0x84000000
 mov [rax+0xC400C],dword 0x00000200
-;======DISPLAY_640x480======
-mov rsi,rax
-mov r8,0x60000
-mov rbx,0x03F027F
-mov [rsi+r8],rbx
-
-mov r8,0x60010
-mov rbx,0x02C01DF
-mov [rsi+r8],rbx
-
-mov r8,0x70180
-mov rbx,0x86100000
-mov [rsi+r8],rbx
-
-mov r8,0x70184
-mov rbx,0x01000000
-mov [rsi+r8],rbx
-
-mov r8,0x7008
-or rbx,1<<31
-mov [rsi+r8],rbx
-        fff:
-        cld
-        mov rdi,rax
-        add rdi,0x6E400
-        lea rsi,[rel logo] 
-        mov rcx,8193
-        rep movsd
-        hlt
 ;======USB-2======
-mov eax,0x0CF8
-mov al,0x10
-out eax,al
+mov dx,0x0CF8
+mov eax, 0x80000010
+out dx,eax
 
-mov eax,0x0CFC
-in ebx,eax
+mov dx,0x0CFC
+in eax,dx
 
-and ebx,0xFFFFFFF0
-mov r15,ebx
-;--------
-mov al,[r15]
+and rax,0xFFFFFFFFFFFFFFF0
+mov r15,rax
+
+mov rbx,[r15]
 mov r14,r15
-movzx rax,al 
+movzx rax,ebx 
 add r14,rax
+
 usb_ff:
-mov [eax],r14
-or rax,1<<1
-mov [r14],eax
-cmp rax,0x02 
-je usb_ff
-mov eax,[r14]
-or eax,1
-mov [r14],eax
+mov [rax],r15
+movzx rbx,byte [rax]
+mov r14,r15
+add r14,rbx
+
+
+mov rax,[r14]
+or rax,1
+mov [r14],rax
 mov [r14+0x40],0x1
-mov eax,[r14+0x40]
-cmp eax,0
-je ussb
-hlt 
+mov rax,[r14+0x40]
+cmp rax,0
+jne ussb
+hlt
+;======BSS======
+usb_cbw resb 31
 ;======USB_BOOT======
 ussb:
 mov eax,[r14+0x40]
@@ -397,6 +468,27 @@ mov [r14+0x00],r12
     test r11,0x80
     jnz .loop_ff
 ;======BOOTING======
+mov al,'B'        ;+
+call engine       ;=
+mov al,'o'        ;+ 
+call engine       ;=
+mov al,'o'        ;+ 
+call engine       ;= 
+mov al,'t'        ;+ 
+call engine       ;=
+mov al,'i'        ;+ 
+call engine       ;=
+mov al,'n'        ;+
+call engine       ;=
+mov al,'g'        ;+
+call engine       ;=
+mov al,'.'        ;+
+call engine       ;=
+mov al,'.'        ;+
+call engine       ;=
+mov al,'.'        ;+
+call engine       ;=
+;===================
 mov [0x20040],dword 0x20060
 mov [0x20060],dword 0x1
 mov [0x20064],dword 0x1
@@ -428,11 +520,6 @@ mov [r14+0x00],rax
 ;=+=+=+=+=+=+=+=+=+=+=+=+=+=+==+=+=+=+=+=+=+=+=+=+=+=+=+=+=
 ;+=+=+=+=+=+=+=+=+=+=+=+=+=+=++=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 ;=+=+=+=+=+=+=+=+=+=+=+=+=+=+==+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-align 4
-logo:
-    incbin "RBFI.raw"
-logo_end:
-
 fault:
     hlt 
     jmp fault
@@ -507,9 +594,7 @@ gdt_gg_ptr:
 gdt_poiii:
     dd compat322
     dw gdt_pointer
-;======BSS======
-section .bss
-usb_cbw resb 31
+
 [bits 16]
     align 4
     gdt2:
