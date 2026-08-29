@@ -105,6 +105,34 @@ sandy_bri:
    in eax,0x0CFC
    or eax,0x07
    out 0x0CFC,eax
+;======MMIO======
+mov eax,0x80000060
+mov dx,0x0CF8
+out dx,eax
+mov eax,0xE0000001
+mov dx,0x0CFC
+out dx,eax
+;======DDR-3======
+mov edi,0xE00FB000
+mov [edi+4],0xA0
+mov [edi+8],byte 0x12
+mov [edi+2],byte 0x48
+loops:
+    test [edi],2
+    je loops
+mov ebx,[edi+5]
+push ebx
+mov esi,0xE0000000
+mov [esi+0x48],0xFED10001
+mov ecx,0xFED10000
+mov [ecx+0x2810],dword 2 
+pop ebx
+add ebx,1 
+mov [ecx+0x4000],ebx
+mov [ecx+0x5000],ebx
+mov edx,[ecx+0x4010]
+or edx,1
+mov [ecx+4010],edx
 jmp loff
 ;======================
 ;======================
@@ -160,6 +188,35 @@ wrmsr
     mov al,0x80
     mov dx,0x70
     out dx,al
+;======MMIO======
+mov eax,0x80000060
+mov dx,0x0CF8
+out dx,eax
+mov eax,0xE0000001
+mov dx,0x0CFC
+out dx,eax
+;======DDR-3======
+mov edi,0xE00FB000
+mov [edi+4],0xA0
+mov [edi+8],byte 0x12
+mov [edi+2],byte 0x48
+loope:
+    test [edi],2
+    je loope
+mov ebx,[edi+5]
+push ebx
+mov esi,0xE0000000
+mov [esi+0x48],0xFED10001
+mov ecx,0xFED10000
+mov [ecx+0x2810],dword 2 
+pop ebx
+add ebx,1 
+mov [ecx+0x4000],ebx
+mov [ecx+0x5000],ebx
+mov edx,[ecx+0x4010]
+or edx,1
+mov [ecx+4010],edx
+jmp loff
 jmp loff
 ;======================
 ;======================
@@ -206,6 +263,36 @@ xor eax,eax
 rep stosd
 mov esp,0xFEF0FFFC
 mov ebp,esp
+;======MMIO======
+mov eax,0x80000060
+mov dx,0x0CF8
+out dx,eax
+
+mov eax,0xE0000001
+mov dx,0x0CFC
+out dx,eax
+;======DDR-3======
+mov edi,0xE00FB000
+mov [edi+4],0xA0
+mov [edi+8],byte 0x12
+mov [edi+2],byte 0x48
+loopq:
+    test [edi],2
+    je loopq
+mov ebx,[edi+5]
+push ebx
+mov esi,0xE0000000
+mov [esi+0x48],0xFED10001
+mov ecx,0xFED10000
+mov [ecx+0x2810],dword 2 
+pop ebx
+add ebx,1 
+mov [ecx+0x4000],ebx
+mov [ecx+0x5000],ebx
+mov edx,[ecx+0x4010]
+or edx,1
+mov [ecx+4010],edx
+jmp loff
 ;======LONG_MODE======
 loff:
    mov eax,cr4
@@ -223,6 +310,10 @@ loff:
    mov dword [0x00012FB0],0xFEC0019B
    mov dword [0x00012FB8],0xFEE0019B
    mov dword [0x00012004],0x00000000
+   mov dword [0x00011FF8],0xFFC00083
+   mov dword [0x00011FFC],0x00000000
+   mov dword [0x00011018],0xE000019B
+   mov dword [0x0001101C],0x00000001
    mov eax,0x00010000
    mov cr3,eax
    mov ecx,0xC0000080
@@ -233,7 +324,7 @@ loff:
    mov eax,cr0
    or eax,0x80000000
    mov cr0,eax
-   jmp dword 0x08:0x00000000000e02be
+   jmp dword 0x08:0x00000000000e02e6
 ;=============================
 ;=============================
 ;=============================
@@ -278,39 +369,6 @@ gdt32_end:
 
 stack_top:
 RBFI_MAIN:
-;======MMIO_FF======
-cmp ebx,0x2A
-je sandy_mmio
-cmp ebx,0x3A
-je ivy_mmio
-cmp ebx,0x3C
-je haswell_mmio
-jmp SETT
-;======MMIO_CONF======
-sandy_mmio:
-mov eax,0x80000060
-mov dx,0x0CF8
-out dx,eax
-mov eax,0xE0000001
-mov dx,0x0CFC
-out dx,eax
-jmp SETT
-ivy_mmio:
-mov eax,0x80000060
-mov dx,0x0CF8
-out dx,eax
-mov eax,0xE0000001
-mov dx,0x0CFC
-out dx,eax
-haswell_mmio:
-    mov eax,0x80000060
-    mov dx,0x0CF8
-    out dx,eax
-
-    mov eax,0xE0000001
-    mov dx,0x0CFC
-    out dx,eax
-SETT:
 ;+=+=+=+=+=+=+=+=+=+=+=+=+=+=++=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 ;=+=+=+=+=+=+=+=+=+=+=+=+=+=+==+=+=+=+=+=+=+=+=+=+=+=+=+=+=
 section .text
@@ -378,9 +436,9 @@ mov rsi,0xE0018014
     test al,0x20
     jz .loopw
     mov rsi,0xE0018000
-    pop rax
     mov [rsi],al
     pop rsi
+    pop rax
     ret
 ;======HDMI======
 HDMI:
@@ -391,9 +449,58 @@ mov [rax+0x7200C],dword 0x80000000
 mov [rax+0x72008],dword 0x80000000
 mov [rax+0xE1140],dword 0x84000000
 mov [rax+0xC400C],dword 0x00000200
+;======VGA======
+mov r11,0xE0000000
+add r11,0x2000
+mov eax,[r11]
+and eax,0x0000FFFF
+cmp eax,0x8086
+jne speaker 
+
+mov rdx,[r11+0x18]
+mov r8,rdx
+and rdx,0xFFFFFFF0
+
+add rdi,0x04
+mov r9,rdi 
+or r9,0x02
+
+speaker:
+    hlt
+    jmp speaker 
+;======DISPLAY_640x480======
+mov rsi,rax
+mov r8,0x60000
+mov rbx,0x03F027F
+mov [rsi+r8],rbx
+
+mov r8,0x60010
+mov rbx,0x02C01DF
+mov [rsi+r8],rbx
+
+mov r8,0x70180
+mov rbx,0x86100000
+mov [rsi+r8],rbx
+
+mov r8,0x70184
+mov rbx,0x01000000
+mov [rsi+r8],rbx
+
+mov r8,0x7008
+or rbx,1<<31
+mov [rsi+r8],rbx
+logo:
+        fff:
+        cld
+        mov rdi,rax
+        add rdi,0x6E400
+        lea rsi,[rel logo] 
+        mov rcx,8193
+        rep movsd
+        hlt
 ;======USB-2======
 mov dx,0x0CF8
-mov eax, 0x80000010
+mov eax, 0x80001810
 out dx,eax
 
 mov dx,0x0CFC
@@ -423,7 +530,8 @@ cmp rax,0
 jne ussb
 hlt
 ;======BSS======
-usb_cbw resb 31
+usb_cbw_size equ 0x00020100
+usb_cbw equ 31
 ;======USB_BOOT======
 ussb:
 mov eax,[r14+0x40]
@@ -443,7 +551,7 @@ mov [0x20040],0x1
 mov [0x20044],0x1
 mov [0x20048],0x001F0080
 
-lea rax,[usb_cbw]
+lea rax,[abs usb_cbw_size]
 mov [rax],dword 0x43425355
 mov [rax+4],dword 0x01
 mov [rax+8],dword 512
@@ -455,7 +563,7 @@ mov [rax+15],byte 0x28
 mov [rax+16],byte 0
 mov [rax+17],dword 0
 mov [rax+21],byte 0
-mov [rax+22],word 0x0100
+mov [rax+22],word 0x0002
 mov [rax+24],byte 0
 
 mov [0x2004C],rax
@@ -465,29 +573,30 @@ or r12,0x21
 mov [r14+0x00],r12
 .loop_ff:
     mov r11,[0x20048]
-    test r11,0x80
-    jnz .loop_ff
+    mov eax,r11d
+    test eax,0x80
+    je .loop_ff
 ;======BOOTING======
-mov al,'B'        ;+
-call engine       ;=
-mov al,'o'        ;+ 
-call engine       ;=
-mov al,'o'        ;+ 
-call engine       ;= 
-mov al,'t'        ;+ 
-call engine       ;=
-mov al,'i'        ;+ 
-call engine       ;=
-mov al,'n'        ;+
-call engine       ;=
-mov al,'g'        ;+
-call engine       ;=
-mov al,'.'        ;+
-call engine       ;=
-mov al,'.'        ;+
-call engine       ;=
-mov al,'.'        ;+
-call engine       ;=
+;mov al,'B'        ;+
+;call engine       ;=
+;mov al,'o'        ;+ 
+;call engine       ;=
+;mov al,'o'        ;+ 
+;call engine       ;= 
+;mov al,'t'        ;+ 
+;call engine       ;=
+;mov al,'i'        ;+ 
+;call engine       ;=
+;mov al,'n'        ;+
+;call engine       ;=
+;mov al,'g'        ;+
+;call engine       ;=
+;mov al,'.'        ;+
+;call engine       ;=
+;mov al,'.'        ;+
+;call engine       ;=
+;mov al,'.'        ;+
+;call engine       ;=
 ;===================
 mov [0x20040],dword 0x20060
 mov [0x20060],dword 0x1
@@ -501,7 +610,7 @@ mov [r14+0x00],r10
 .loopd:
     mov rax,[0x20068]
     test rax,0x80
-    jne .loopd
+    je .loopd
 
 mov [0x20060],dword 0x20080
 mov [0x20080],dword 0x1
@@ -516,7 +625,7 @@ mov [r14+0x00],rax
 .loopz:
     mov rax,[0x20088]
     test rax,0x80
-    jne .loopz
+    je .loopz
 ;=+=+=+=+=+=+=+=+=+=+=+=+=+=+==+=+=+=+=+=+=+=+=+=+=+=+=+=+=
 ;+=+=+=+=+=+=+=+=+=+=+=+=+=+=++=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 ;=+=+=+=+=+=+=+=+=+=+=+=+=+=+==+=+=+=+=+=+=+=+=+=+=+=+=+=+=
