@@ -222,6 +222,14 @@ jmp loff
 ;======================
 ;======================
 haswell:
+;======MMIO======
+mov eax,0x80000060
+mov dx,0x0CF8
+out dx,eax
+
+mov eax,0xE0000001
+mov dx,0x0CFC
+out dx,eax
 ;======PCIe======
 mov eax,[0xE000803C]
 or eax,0x00000008
@@ -236,10 +244,6 @@ mov [0xE00F80AC],eax
 mov eax,[0xE00F8004]
 or eax,0x00000007
 mov [0xE00F8004],eax
-
-mov al,0x80
-mov dx,0x70
-out dx,al
 ;======CAR======
 mov ecx,0x000002FF
 rdmsr
@@ -263,14 +267,6 @@ xor eax,eax
 rep stosd
 mov esp,0xFEF0FFFC
 mov ebp,esp
-;======MMIO======
-mov eax,0x80000060
-mov dx,0x0CF8
-out dx,eax
-
-mov eax,0xE0000001
-mov dx,0x0CFC
-out dx,eax
 ;======DDR-3======
 mov edi,0xE00FB000
 mov [edi+4],0xA0
@@ -295,6 +291,17 @@ mov [ecx+4010],edx
 jmp loff
 ;======LONG_MODE======
 loff:
+;======SATA======
+mov esi,0xE00FA000
+mov [esi+0x24],dword 0xFE044000
+mov edx,[esi+0x06]
+or edx,0x06
+mov [esi+0x04],edx
+mov edx,0xFE044000
+mov [edx+0x100],0x00200000
+mov [edx+0x108],0x00100000
+mov [edx+0x138],dword 1
+
    mov eax,cr4
    or eax,0x30
    mov cr4,eax
