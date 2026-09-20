@@ -1,6 +1,6 @@
 ;+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 ;+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
-;RawBootFirmwareInterface RBFI v0.1.17
+;RawBootFirmwareInterface RBFI v0.2.18
 ;Copiright (c) 2026 $yscall-(Syscall1dev)
 ;More info : By default, RBFI looks for the kernel at address 0x00100000,
 ;exactly one megabyte of memory in 64-bit mode.
@@ -62,7 +62,8 @@ cmp ebx,0x3A
 je ivy_bri
 cmp ebx,0x3C
 je haswell
-
+cmp ebx,0x37
+je baytrail
 sandy_bri:
 ;======CAR======
   mov ecx,0x2FF
@@ -217,7 +218,6 @@ mov edx,[ecx+0x4010]
 or edx,1
 mov [ecx+4010],edx
 jmp loff
-jmp loff
 ;======================
 ;======================
 ;======================
@@ -267,28 +267,91 @@ xor eax,eax
 rep stosd
 mov esp,0xFEF0FFFC
 mov ebp,esp
-;======DDR-3======
+;======DDR-4======
+mov esi,0xE0000000
+mov [esi+0x48],0xFED10001
+mov ecx,0xFED10000
+mov [ecx+0x5004],0x000100A1
+mov [ecx+0x3E00],0x00000000
+mov edx,0x2710
+.loop:
+    dec edx
+    cmp edx,0
+    jne .loop
+mov [ecx+0x3E00],0x00000003
+mov [ecx+0x4000],0x10101010
+mov [ecx+0x4008],0x00000020
+mov [ecx+0x3F04],0x86001C00
+.loopz:
+    mov ebx,[ecx+0x3F04]
+    test ebx,0x80000000
+    jne .loopz
+mov [ecx+0x3F04],0x85000000
+.loope:
+    mov ebx,[ecx+0x3F04]
+    test ebx,0x80000000
+    jne .loope
+mov [ecx+0x3F04],0x81000001
+.loopw:
+    mov ebx,[ecx+0x3F04]
+    test ebx,0x80000000
+    jne .loopw
+mov [ecx+0x3F04],0x80000510
+.loopd:
+    mov ebx,[ecx+0x3F04]
+    test ebx,0x80000000
+    jne .loopd
+mov eax,[ecx+0x5000]
+or eax,0x00000001
+mov [ecx+0x5000],eax
+jmp loff
+;======================
+;======================
+;======================
+baytrail:
+;======MMIO======
+mov eax,0x80000060
+mov dx,0x0CF8
+out dx,eax
+
+mov eax,0xE0000001
+mov dx,0x0CFC
+out dx,eax
+;======PCIE======
+mov eax,0xE0000004
+mov ebx,dword [eax]
+or ebx,0x07
+mov [eax],ebx
+;======LPC======
+mov eax,0xE00F8040
+mov [eax],0x00700010
+mov [eax+4],0x00700010
+;======PMBASE======
+mov eax,0xE00F8060
+mov [eax],0x00000501
+;======PCI_COMM======
+mov eax,0xE00F8004
+mov ebx,[eax]
+or ebx,0x00000007
+mov [eax],ebx
+;======DDR3L======
 mov edi,0xE00FB000
 mov [edi+4],0xA0
 mov [edi+8],byte 0x12
 mov [edi+2],byte 0x48
-loopq:
+loopc:
     test [edi],2
-    je loopq
+    je loopc
 mov ebx,[edi+5]
 push ebx
 mov esi,0xE0000000
-mov [esi+0x48],0xFED10001
-mov ecx,0xFED10000
-mov [ecx+0x2810],dword 2 
 pop ebx
 add ebx,1 
-mov [ecx+0x4000],ebx
-mov [ecx+0x5000],ebx
-mov edx,[ecx+0x4010]
+mov [ecx+0x70],ebx
+mov [ecx+0x74],ebx
+mov edx,[ecx+0x70]
 or edx,1
-mov [ecx+4010],edx
-jmp loff
+mov [ecx+70],edx
 ;======LONG_MODE======
 loff:
 ;======SATA======
@@ -301,7 +364,24 @@ mov edx,0xFE044000
 mov [edx+0x100],0x00200000
 mov [edx+0x108],0x00100000
 mov [edx+0x138],dword 1
-
+;======SPEAKER======
+mov esi,0xFED08400
+mov bl,[esi]
+or bl,0x03
+mov [esi],bl
+;======GPU======
+mov esi,0xE0000000
+loopm:
+    mov bl,[esi+0x0B]
+    cmp bl,0x03
+    je enable
+    add esi,0x1000
+    jmp loopm
+enable:
+    mov [esi+0x10],0xD0000000
+    mov ax,[esi+0x04]
+    or ax,0x0006
+    mov [esi+0x04],ax
    mov eax,cr4
    or eax,0x30
    mov cr4,eax
@@ -331,7 +411,7 @@ mov [edx+0x138],dword 1
    mov eax,cr0
    or eax,0x80000000
    mov cr0,eax
-   jmp dword 0x08:0x00000000000e02e6
+   jmp dword 0x08:0x00000000000e0517
 ;=============================
 ;=============================
 ;=============================
@@ -381,7 +461,7 @@ RBFI_MAIN:
 section .text
 [bits 64]
 ;======IDT======
-jmp lol2
+jmp lool2
 align 16
 idt_table:
 times 256 dq 0, 0
@@ -392,7 +472,7 @@ align 16
 idt_ptr:
 dw idt_end - idt_table - 1
 dq (0xFFFE0000+(idt_table-startcli))
-
+lool2:
 xor rcx, rcx
 mov rdi,0x000E2210
 add rdi,(idt_table-startcli)
@@ -456,56 +536,8 @@ mov [rax+0x7200C],dword 0x80000000
 mov [rax+0x72008],dword 0x80000000
 mov [rax+0xE1140],dword 0x84000000
 mov [rax+0xC400C],dword 0x00000200
-;======VGA======
-mov r11,0xE0000000
-add r11,0x2000
-mov eax,[r11]
-and eax,0x0000FFFF
-cmp eax,0x8086
-jne speaker 
-
-mov rdx,[r11+0x18]
-mov r8,rdx
-and rdx,0xFFFFFFF0
-
-add rdi,0x04
-mov r9,rdi 
-or r9,0x02
-
-speaker:
-    hlt
-    jmp speaker 
-;======DISPLAY_640x480======
-mov rsi,rax
-mov r8,0x60000
-mov rbx,0x03F027F
-mov [rsi+r8],rbx
-
-mov r8,0x60010
-mov rbx,0x02C01DF
-mov [rsi+r8],rbx
-
-mov r8,0x70180
-mov rbx,0x86100000
-mov [rsi+r8],rbx
-
-mov r8,0x70184
-mov rbx,0x01000000
-mov [rsi+r8],rbx
-
-mov r8,0x7008
-or rbx,1<<31
-mov [rsi+r8],rbx
-logo:
-        fff:
-        cld
-        mov rdi,rax
-        add rdi,0x6E400
-        lea rsi,[rel logo] 
-        mov rcx,8193
-        rep movsd
-        hlt
 ;======USB-2======
+uiis:
 mov dx,0x0CF8
 mov eax, 0x80001810
 out dx,eax
@@ -576,7 +608,7 @@ mov [rax+24],byte 0
 mov [0x2004C],rax
 mov [r14+0x18],0x20000
 mov r12,[r14+0x00]
-or r12,0x21
+or r12,0x21 
 mov [r14+0x00],r12
 .loop_ff:
     mov r11,[0x20048]
@@ -640,14 +672,12 @@ fault:
     hlt 
     jmp fault
 ;+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
-jmp launch
+call launch
 align 8 
 rwfi_bud db 2
 launch:
     cmp byte [rel rwfi_bud],0
     je none
-    cmp byte [rel rwfi_bud],1
-    je launch16bit
     cmp byte [rel rwfi_bud],2
     je launch32bit
     cmp byte [rel rwfi_bud],3
@@ -658,14 +688,15 @@ launch64bit:
     mov rax,0x00100000
     jmp rax
 launch32bit:
-[bits 32]
 compat32:
+[bits 32]
 lgdt [gdt_pointer]
 compat322:
 mov eax,cr0
 and eax,0x7FFFFFFF
-jmp far dword [gdt_poiii]
 mov cr0,eax
+jmp far dword [gdt_poiii]
+
 mov ecx,0xC0000080
 rdmsr 
 mov eax,cr4
@@ -679,10 +710,7 @@ mov ss,ax
 mov fs,ax
 mov gs,ax
 mov esp,0x8000FFFF
-jmp dword 0x08:0x0100000
-launch16bit:
-    hlt
-    jmp launch16bit
+jmp dword 0x18:0x0100000
     [bits 64]
 none:
 hlt
@@ -709,7 +737,7 @@ gdt_gg_ptr:
     dq gdt_gg
 gdt_poiii:
     dd compat322
-    dw gdt_pointer
+    dw 0x18
 
 [bits 16]
     align 4
