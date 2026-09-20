@@ -1,5 +1,5 @@
 # RBFI - (Raw Boot Firmware Interface)
-RBFI is an ultra-fast, small, 64-bit firmware designed for backward compatibility in terms of rolling back from 64-bit mode to 32-bit and 16-bit to run old programs and DOS.
+RBFI is an ultra-fast, small, 64-bit firmware designed for backward compatibility in terms of rolling back from 64-bit mode to 32-bit to run old programs.
 # Info:
 ![Assembly(Nasm)](https://img.shields.io/badge/Ready-90%25-orange)
 ![Assembly(Nasm)](https://img.shields.io/badge/In-developered-blue)
@@ -8,7 +8,7 @@ RBFI is an ultra-fast, small, 64-bit firmware designed for backward compatibilit
 # More info:
 RBFI - 64-bit firmware with the ability to revert to 32 and 16 bits for backward compatibility, running old programs, and DOS
 For the OS to run, the RBFI program has to be at address 0x0100000, and the program needs to get into memory via USB 2
-To specify the bitness of your program, the rbfi_bud label in the RBFI code should be under a certain number: 64-bit mode - rbfi_bud db 3, 32-bit mode - rbfi_bud db 2, 16-bit mode - rbfi_bud db 1
+To specify the bitness of your program, the rbfi_bud label in the RBFI code should be under a certain number: 64-bit mode - rbfi_bud db 3, 32-bit mode - rbfi_bud db 2
 # Build code:
 When compiling RBFI, be sure to specify the value of rbfi_bud
 **For example : **
