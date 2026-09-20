@@ -3,7 +3,7 @@ RBFI is an ultra-fast, small, 64-bit firmware designed for backward compatibilit
 # Info:
 ![Assembly(Nasm)](https://img.shields.io/badge/Ready-98%25-red)
 ![Assembly(Nasm)](https://img.shields.io/badge/In-developered-blue)
-![Assembly(Nasm)](https://img.shields.io/badge/Platform-x86-black)
+![Assembly(Nasm)](https://img.shields.io/badge/Platform-x86-orange)
 ![Assembly(Nasm)](https://img.shields.io/badge/Socket-LGA--1155-green)
 ![Assembly(Nasm)](https://img.shields.io/badge/Socket-LGA--1150-green)
 # More info:
