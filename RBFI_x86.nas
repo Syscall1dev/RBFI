@@ -1,14 +1,9 @@
-;+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
-;+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 ;RawBootFirmwareInterface RBFI v0.2.18
 ;Copiright (c) 2026 $yscall-(Syscall1dev)
 ;More info : By default, RBFI looks for the kernel at address 0x00100000,
 ;exactly one megabyte of memory in 64-bit mode.
-;You can use the 'real mode' command and RBFI will switch to 16-bit mode, or 'protected mode' for 32-bit mode.
-;To hand over control to the kernel, you need to use the 'launch' command, BUT MAKE SURE YOU CHOOSE THE MODE FIRST!!!
-;=========
-;=========
-HYFI:
+;+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+RBFI:
 [bits 16]
 [org 0xFFFE0000]
 startcli:
@@ -62,6 +57,8 @@ cmp ebx,0x3A
 je ivy_bri
 cmp ebx,0x3C
 je haswell
+cmp ebx,0x3D
+je broadwell
 cmp ebx,0x37
 je baytrail
 sandy_bri:
@@ -308,6 +305,68 @@ jmp loff
 ;======================
 ;======================
 ;======================
+broadwell:
+;======MMIO======
+mov eax,0x80000060
+mov dx,0x0CF8
+out dx,eax
+
+mov eax,0xE0000001
+mov dx,0x0CFC
+out dx,eax
+;======PCIe======
+mov esi,0xE0000004
+mov eax,[esi]
+or eax,0x00000007
+mov [esi],eax
+;======LPC======
+mov eax,0x00700010
+mov esi,0xE00F8080
+mov [esi],eax
+;======PMBASE======
+mov eax,0x00000501
+mov esi,0xE00F8040
+mov [esi],eax
+;======PCI_command======
+mov eax,[0xE00F8004]
+or eax,0x00000007
+mov [0xE00F8004],eax
+;======DDR-4======
+mov eax,0xFED10001
+mov esi,0xE0000048
+mov [esi],eax
+mov ecx,0xFED10000
+mov edx,[ecx+0x5008]
+or edx,0x05
+mov [ecx+0x5008],edx
+mov [ecx+0x4000],0x00000000
+mov [ecx+0x4008],0x83000000
+.loopb:
+    mov eax,[ecx+0x4008]
+    test eax,0x80000000
+    jne .loopb
+mov [ecx+0x4008],0x82000000
+.loopg:
+    mov eax,[ecx+0x4008]
+    test eax,0x80000000
+    jne .loopg
+mov [ecx+0x4008],0x81000000
+.loopy:
+    mov eax,[ecx+0x4008]
+    test eax,0x80000000
+    jne .loopy
+mov [ecx+0x4008],0x80000100
+.loopr:
+    mov eax,[ecx+0x4008]
+    test eax,0x80000000
+    jne .loopr
+
+mov eax,[ecx+0x5000]
+or eax,0x00000001
+mov [ecx+0x5000],eax
+;======================
+;======================
+;======================
 baytrail:
 ;======MMIO======
 mov eax,0x80000060
@@ -371,17 +430,29 @@ or bl,0x03
 mov [esi],bl
 ;======GPU======
 mov esi,0xE0000000
+mov edi,0xE00FFFFF
 loopm:
-    mov bl,[esi+0x0B]
+    cmp esi,edi
+    jge gpu_not_found
+    mov ax,[esi]
+    cmp ax,0xFFFF
+    je .next_devise
+    mov bl,[esi+0x0C]
     cmp bl,0x03
     je enable
+.next_devise:
     add esi,0x1000
     jmp loopm
+gpu_not_found:
+    hlt
 enable:
     mov [esi+0x10],0xD0000000
     mov ax,[esi+0x04]
     or ax,0x0006
     mov [esi+0x04],ax
+;THIS GPU CONF BY @DennisVol-[TG]
+;======CONF======
+conf:
    mov eax,cr4
    or eax,0x30
    mov cr4,eax
@@ -411,7 +482,7 @@ enable:
    mov eax,cr0
    or eax,0x80000000
    mov cr0,eax
-   jmp dword 0x08:0x00000000000e0517
+   jmp dword 0x08:0x00000000000e062d
 ;=============================
 ;=============================
 ;=============================
