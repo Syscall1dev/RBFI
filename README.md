@@ -7,7 +7,7 @@ RBFI is an ultra-fast, small, 64-bit firmware designed for backward compatibilit
 ![Assembly(Nasm)](https://img.shields.io/badge/Socket-LGA--1155-green)
 ![Assembly(Nasm)](https://img.shields.io/badge/Socket-LGA--1150-green)
 ![Assembly(Nasm)](https://img.shields.io/badge/CPUs-IvyBridge_SandyBridge_Broadwell_Haswell_Baytrail-white)
-![Assembly(Nasm)](https://img.shields.io/badge/Difficulty_of_use-60%25-white)
+![Assembly(Nasm)](https://img.shields.io/badge/Difficulty_of_use-60%25-blue)
 # More info:
 RBFI - 64-bit firmware with the ability to revert to 32 for backward compatibility, running old programs, and OS
 For the OS to run, the RBFI program has to be at address 0x0100000, and the program needs to get into memory via USB 2
