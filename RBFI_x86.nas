@@ -680,7 +680,8 @@ mov [rax+15],byte 0x28
 mov [rax+16],byte 0
 mov [rax+17],dword 0
 mov [rax+21],byte 0
-mov [rax+22],word 0x0001
+mov [rax+22],byte 0
+mov [rax+23],byte 1 ;fixed usb boot gg
 mov [rax+24],byte 0
 
 mov [0x2004C],rax
