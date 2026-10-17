@@ -768,29 +768,32 @@ launch64bit:
     mov rax,0x00100000
     jmp rax
 launch32bit:
-compat32:
-[bits 32]
-lgdt [gdt_pointer]
-compat322:
-mov eax,cr0
-and eax,0x7FFFFFFF
-mov cr0,eax
-jmp far dword [gdt_poiii]
+htl
+jmp launch32bit
+;This part of code is  doesn`t ended
+;compat32:
+;[bits 32]
+;lgdt [gdt_pointer]
+;compat322:
+;mov eax,cr0
+;and eax,0x7FFFFFFF
+;mov cr0,eax
+;jmp far dword [gdt_poiii]
 
-mov ecx,0xC0000080
-rdmsr 
-mov eax,cr4
-and eax,0xFFFFFFDF
-mov cr4,eax
-cli
-xor ax,ax
-mov ds,ax
-mov es,ax
-mov ss,ax
-mov fs,ax
-mov gs,ax
-mov esp,0x8000FFFF
-jmp dword 0x18:0x0100000
+;mov ecx,0xC0000080
+;rdmsr 
+;mov eax,cr4
+;and eax,0xFFFFFFDF
+;mov cr4,eax
+;cli
+;xor ax,ax
+;mov ds,ax
+;mov es,ax
+;mov ss,ax
+;mov fs,ax
+;mov gs,ax
+;mov esp,0x8000FFFF
+;jmp dword 0x18:0x0100000
     [bits 64]
 none:
 hlt
@@ -837,4 +840,4 @@ starthd:
     dw 0x0000
     dw 0xE000
 TIMES 131072 - ($-$$) db 0 
-;=============================
+;=============================	
