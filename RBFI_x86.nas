@@ -736,7 +736,7 @@ mov [0x20080],dword 0x1
 mov [0x20084],dword 0x1
 mov [0x20088],dword 0x000D0180
 mov [0x2008C],dword 0x20200
-
+0
 mov rax,[r14+0x00]
 or rax,1<<6
 mov [r14+0x00],rax
@@ -765,6 +765,8 @@ launch:
     je launch32bit
     cmp rax, qword [rel rbfi_64]
     je launch64bit
+    cmp rax, byte 0x00
+    je none
     ret
 ;======BOOT======
 launch64bit:
