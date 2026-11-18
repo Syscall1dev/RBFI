@@ -827,10 +827,9 @@ CODE32 equ 0x18
 gdt_gg_ptr:
     dw gdt_gg_ptr - gdt_gg -1 
     dq gdt_gg
-gdt_poiii:
-    dd compat322
-    dw 0x18
-
+;gdt_poiii:
+;    dd compat322
+;    dw 0x18
 [bits 16]
     align 4
     gdt2:
