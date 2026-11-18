@@ -61,6 +61,12 @@ cmp ebx,0x3D
 je broadwell
 cmp ebx,0x37
 je baytrail
+
+cli
+no_found_proccesor:
+hlt
+jmp no_found_proccesor
+
 sandy_bri:
 ;======CAR======
   mov ecx,0x2FF
