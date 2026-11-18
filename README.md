@@ -14,7 +14,7 @@ For the OS to run, the RBFI program has to be at address 0x0100000, and the prog
 # Build code:
 **For example :**
 
-`nasm -f bin RBFI_x86.asm -o RBFI.bin`
+`nasm -f bin RBFI_x86.nas -o RBFI.bin`
 # Launch:
 **Bochs:**
 
