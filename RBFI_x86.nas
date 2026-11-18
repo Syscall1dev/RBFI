@@ -742,7 +742,6 @@ mov [0x20080],dword 0x1
 mov [0x20084],dword 0x1
 mov [0x20088],dword 0x000D0180
 mov [0x2008C],dword 0x20200
-0
 mov rax,[r14+0x00]
 or rax,1<<6
 mov [r14+0x00],rax
@@ -779,7 +778,7 @@ launch64bit:
     mov rax,0x00100000
     jmp rax
 launch32bit:
-htl
+hlt
 jmp launch32bit
 ;This part of code is  doesn`t ended
 ;compat32:
@@ -830,7 +829,7 @@ gdt_gg_ptr:
     dw gdt_gg_ptr - gdt_gg -1 
     dq gdt_gg
 gdt_poiii:
-    dd compat322
+    dd 0
     dw 0x18
 
 [bits 16]
