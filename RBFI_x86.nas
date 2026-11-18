@@ -742,7 +742,6 @@ mov [0x20080],dword 0x1
 mov [0x20084],dword 0x1
 mov [0x20088],dword 0x000D0180
 mov [0x2008C],dword 0x20200
-0
 mov rax,[r14+0x00]
 or rax,1<<6
 mov [r14+0x00],rax
@@ -779,7 +778,7 @@ launch64bit:
     mov rax,0x00100000
     jmp rax
 launch32bit:
-htl
+hlt
 jmp launch32bit
 ;This part of code is  doesn`t ended
 ;compat32:
@@ -790,7 +789,6 @@ jmp launch32bit
 ;and eax,0x7FFFFFFF
 ;mov cr0,eax
 ;jmp far dword [gdt_poiii]
-
 ;mov ecx,0xC0000080
 ;rdmsr 
 ;mov eax,cr4
