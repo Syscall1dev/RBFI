@@ -470,6 +470,7 @@ conf:
    mov eax,cr4
    or eax,0x30
    mov cr4,eax
+;======PAGING======
    mov edi, 0x00010000
 xor eax,eax
 mov ecx, 0x6000
@@ -479,27 +480,27 @@ mov dword [0x00011000], 0x00012003
 mov dword [0x00011008], 0x00013003
 mov dword [0x00011010], 0x00014003
 mov dword [0x00011018], 0x00015003
-jmp .paging_setting
+jmp paging_setting
 mmio_sector:
 mov ebx,eax
 or ebx,0x18
 mov eax,ebx
-jmp .default
-.paging_setting:
+jmp loopcf
+paging_setting:
 mov edi,0x00012000
 mov eax,0x00000083
 mov ecx,2048
-.loopag:
+loopag:
 cmp eax,0xD0000000
 jae mmio_sector
-.default:
+loopcf:
  mov [edi],eax
  add eax,0x00200000
  add edi,8
 dec ecx
 cmp ecx,0
-jne .loopag
-
+jne loopag
+;======CONF======
    mov eax,0x00010000
    mov cr3,eax
    mov ecx,0xC0000080
