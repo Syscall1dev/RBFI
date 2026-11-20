@@ -613,7 +613,6 @@ mov [rbx+4],byte 0
     mov al,0x0B
     out dx,al
 ;======COM======
-jmp HDMI
 engine:
 push rax
 push rsi
@@ -636,6 +635,27 @@ mov [rax+0x7200C],dword 0x80000000
 mov [rax+0x72008],dword 0x80000000
 mov [rax+0xE1140],dword 0x84000000
 mov [rax+0xC400C],dword 0x00000200
+;======DISPLAY_640x480======
+mov rsi,rax
+mov r8,0x60000
+mov rbx,0x03F027F
+mov [rsi+r8],rbx
+
+mov r8,0x60010
+mov rbx,0x02C01DF
+mov [rsi+r8],rbx
+
+mov r8,0x70180
+mov rbx,0x86100000
+mov [rsi+r8],rbx
+
+mov r8,0x70184
+mov rbx,0x01000000
+mov [rsi+r8],rbx
+
+mov r8,0x7008
+or rbx,1<<31
+mov [rsi+r8],rbx
 ;======USB-2======
 uiis:
 mov dx,0x0CF8
