@@ -451,7 +451,7 @@ loopm:
     mov ax,[esi]
     cmp ax,0xFFFF
     je .next_devise
-    mov bl,[esi+0x0C]
+    mov bl,[esi+0x0B]
     cmp bl,0x03
     je enable
 .next_devise:
@@ -636,7 +636,6 @@ mov [rax+0x72008],dword 0x80000000
 mov [rax+0xE1140],dword 0x84000000
 mov [rax+0xC400C],dword 0x00000200
 ;======DISPLAY_640x480======
-mov rsi,rax
 mov r8,0x60000
 mov rbx,0x03F027F
 mov [rsi+r8],rbx
@@ -737,27 +736,26 @@ mov [r14+0x00],r12
     test eax,0x80
     je .loop_ff
 ;======BOOTING======
-;mov al,'B'        ;+
-;call engine       ;=
-;mov al,'o'        ;+ 
-;call engine       ;=
-;mov al,'o'        ;+ 
-;call engine       ;= 
-;mov al,'t'        ;+ 
-;call engine       ;=
-;mov al,'i'        ;+ 
-;call engine       ;=
-;mov al,'n'        ;+
-;call engine       ;=
-;mov al,'g'        ;+
-;call engine       ;=
-;mov al,'.'        ;+
-;call engine       ;=
-;mov al,'.'        ;+
-;call engine       ;=
-;mov al,'.'        ;+
-;call engine       ;=
-;===================
+mov al,'B'
+call engine   
+mov al,'o'         
+call engine      
+mov al,'o'         
+call engine        
+mov al,'t'         
+call engine       
+mov al,'i'         
+call engine       
+mov al,'n'        
+call engine       
+mov al,'g'        
+call engine       
+mov al,'.'        
+call engine       
+mov al,'.'
+call engine       
+mov al,'.'
+call engine
 mov [0x20040],dword 0x20060
 mov [0x20060],dword 0x1
 mov [0x20064],dword 0x1
