@@ -817,9 +817,41 @@ launch:
     ret
 ;======BOOT======
 launch64bit:
+lea rsi, [rel acpi_rsdp]
+mov rdi, 0x0009E000
+mov ecx, 36
+cld
+rep movsb
+lea rsi, [rel acpi_rsdt]
+mov rdi, 0x0009E030
+mov ecx, 40
+cld
+rep movsb
+lea rsi,[rel acpi_madt]
+mov rdi, 0x0009E060
+mov ecx, 64
+cld
+rep movsb
+mov rdi,0x0009E000
     mov rax,0x00100000
     jmp rax
 launch32bit:
+lea rsi, [rel acpi_rsdp]
+mov rdi, 0x0009E000
+mov ecx, 36
+cld
+rep movsb
+lea rsi, [rel acpi_rsdt]
+mov rdi, 0x0009E030
+mov ecx, 40
+cld
+rep movsb
+lea rsi,[rel acpi_madt]
+mov rdi, 0x0009E060
+mov ecx, 64
+cld
+rep movsb
+mov rdi,0x0009E000
 hlt
 jmp launch32bit
 ;This part of code is  doesn`t ended
@@ -882,6 +914,46 @@ gdt_gg_ptr:
     gdt_pointer2:
     dw gdt_end2 - gdt2 - 1
     dd gdt2
+[bits 64]
+acpi_rsdp:
+db 'RSD PTR '
+db 0x63
+db 'RBFI  '
+db 2
+dd 0x0009E030
+dd 36
+dq 0x0009E030
+db 0xC3
+db 0, 0, 0 
+acpi_rsdt:
+db 'RSDT'
+dd 40
+db 1
+db 0x31
+db 'RBFI  '
+db 'RBFI org'
+dd 1
+db 'SYS1'
+dd 1
+dd 0x0009E060
+
+acpi_madt:
+db 'APIC'
+dd 64
+db 3
+db 0xCD
+db 'RBFI  '
+db 'RBFI org'
+dd 1
+db 'SYS1'
+dd 1
+dd 0xFEE00000
+dd 1
+db 0, 8, 0, 0
+dd 1
+db 1, 12, 0, 0
+dd 0xFEC00000
+dd 0 
 ;=============================
 [bits 16]
 TIMES 131072-16-($-$$) db 0
