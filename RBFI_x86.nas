@@ -442,29 +442,38 @@ mov esi,0xFED08400
 mov bl,[esi]
 or bl,0x03
 mov [esi],bl
-;======GPU======
+;======DEVISE_SEARCHING======
 mov esi,0xE0000000
 mov edi,0xE00FFFFF
 loopm:
     cmp esi,edi
-    jge gpu_not_found
+    jge devise_not_found
     mov ax,[esi]
     cmp ax,0xFFFF
     je .next_devise
     mov bl,[esi+0x0B]
     cmp bl,0x03
-    je enable
+    je enablegpu
+   mov bl,[esi+0x0B]
+   cmp bl,0x02
+   je enablenetwork
 .next_devise:
     add esi,0x1000
     jmp loopm
-gpu_not_found:
-    hlt
-enable:
+devise_not_found:
+   jmp conf
+enablegpu:
     mov dword [esi+0x10],0xD0000000
     mov ax,[esi+0x04]
     or ax,0x0006
     mov [esi+0x04],ax
-;THIS GPU CONF BY @DennisVol-[TG]
+jmp .next_devise
+enablenetwork:
+    mov dword [esi+0x10],0xD1000000
+    mov ax,[esi+0x04]
+    or ax,0x0006
+    mov [esi+0x04],ax
+    jmp .next_devise
 ;======CONF======
 conf:
    mov eax,cr4
