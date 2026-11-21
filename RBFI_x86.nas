@@ -1,4 +1,4 @@
-;RawBootFirmwareInterface RBFI v0.2.18
+;RawBootFirmwareInterface RBFI v0.4.19
 ;Copiright (c) 2026 $yscall-(Syscall1dev)
 ;More info : By default, RBFI looks for the kernel at address 0x00100000,
 ;exactly one megabyte of memory in 64-bit mode.
@@ -450,14 +450,14 @@ loopm:
     jge devise_not_found
     mov ax,[esi]
     cmp ax,0xFFFF
-    je .next_devise
+    je next_devise
     mov bl,[esi+0x0B]
     cmp bl,0x03
     je enablegpu
    mov bl,[esi+0x0B]
    cmp bl,0x02
    je enablenetwork
-.next_devise:
+next_devise:
     add esi,0x1000
     jmp loopm
 devise_not_found:
@@ -467,13 +467,13 @@ enablegpu:
     mov ax,[esi+0x04]
     or ax,0x0006
     mov [esi+0x04],ax
-jmp .next_devise
+jmp next_devise
 enablenetwork:
     mov dword [esi+0x10],0xD1000000
     mov ax,[esi+0x04]
     or ax,0x0006
     mov [esi+0x04],ax
-    jmp .next_devise
+    jmp next_devise
 ;======CONF======
 conf:
    mov eax,cr4
