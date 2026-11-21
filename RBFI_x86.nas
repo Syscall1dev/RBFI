@@ -622,6 +622,7 @@ mov [rbx+4],byte 0
     mov al,0x0B
     out dx,al
 ;======COM======
+jmp HDMI
 engine:
 push rax
 push rsi
@@ -801,7 +802,6 @@ fault:
     jmp fault
 ;+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 start:
-mov rax,0x00100000
 call launch
 hlt
 align 8 
@@ -833,7 +833,7 @@ mov ecx, 64
 cld
 rep movsb
 mov rdi,0x0009E000
-    mov rax,0x00100000
+    mov rax,[0x0010000]
     jmp rax
 launch32bit:
 lea rsi, [rel acpi_rsdp]
