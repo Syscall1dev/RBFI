@@ -833,7 +833,7 @@ mov ecx, 64
 cld
 rep movsb
 mov rdi,0x0009E000
-    mov rax,[0x00100000]
+    mov rax, 0x00100000
     jmp [rax+0x08]
 launch32bit:
 lea rsi, [rel acpi_rsdp]
